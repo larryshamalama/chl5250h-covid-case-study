@@ -1,15 +1,17 @@
-
 library(dplyr)
 library(lubridate)
 library(readr)
 library(deSolve)
+library(rstudioapi)
 
-cases <- read.csv("C:/Users/Lena Nguyen/Desktop/school/CHL5250 special topics/covid case study/cases_by_status_and_phu.csv")
+directory <- dirname(rstudioapi::getSourceEditorContext()$path) # doesn't work if ran in Terminal
+
+cases <- read.csv(file.path(directory, "data/cases_by_status_and_phu.csv"))
 cases <- cases %>% filter(PHU_NAME == "TORONTO")
 cases_sort <- cases[order(cases$FILE_DATE),]
 
 
-new_case <- read.csv("C:/Users/Lena Nguyen/Desktop/school/CHL5250 special topics/covid case study/COVID19.csv")
+new_case <- read.csv(file.path(directory, "data/COVID19.csv"))
 
 
 infectious_period <- 10 # from https://www.cdc.gov/coronavirus/2019-ncov/hcp/duration-isolation.html
@@ -84,4 +86,3 @@ plot (I ~ time, data = output, type='b', ylim = c(0,1), col = 'red', ylab = '', 
 par (new = TRUE)  
 plot (R ~ time, data = output, type='b', ylim = c(0,1), col = 'green', ylab = '', axes = FALSE)
 legend(140, 1, legend = c("Susceptible", "Exposed", "Infected", "Recovered"), col = c("blue", "pink", "red", "green"), lty =1, cex= 0.8)
-
