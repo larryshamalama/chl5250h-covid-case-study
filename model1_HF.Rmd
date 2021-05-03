@@ -41,7 +41,6 @@ I <- 570 #number of infected individuals
 
 beta <- (-1/t) * log(1-Inew*((1/I)+(1/S)))
 
-
 #parameters
 gamma <- 1/infectious_period
 delta <- 1/latent_period
@@ -147,12 +146,12 @@ matplot(x[,'time'], x[,c('S','E','I','R')], col=scales::alpha(c('blue','magenta'
 cases_sort$Date <- as.Date(cases_sort$FILE_DATE)
 cases_sort <- cases_sort %>% 
   mutate(S = (N - ACTIVE_CASES - RESOLVED_CASES - DEATHS)/N,
-         EI = (ACTIVE_CASES + RESOLVED_CASES)/N,
-         R = RESOLVED_CASES/N)
+         EI = (ACTIVE_CASES)/N,
+         R = (RESOLVED_CASES + DEATHS)/N)
 
 par(mgp = c(2, 1, 0))
 matplot(cases_sort$Date, cases_sort[c('S','EI','R')], col = c('blue','red','green'), type = 'l',
-        ylab = 'Probability', xlab = 'Date')
+        ylab = 'Proportion of population', xlab = 'Date')
 
 matplot(cases_sort[,'Date'], cases_sort[, c('S','EI','R')], 
         ylim = c(0, 0.1),
@@ -166,7 +165,6 @@ matplot(cases_sort[97:(97+200),'Date'], cases_sort[97:(97+200), c('S','EI','R')]
         col = c('blue','red','green'), type = 'l',
         ylab = 'Probability', xlab = 'Date',
         main = '2020-Jul-06 onwards')
-
 
 ```
 
