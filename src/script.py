@@ -10,6 +10,9 @@ from pymc3.ode import DifferentialEquation
 from scipy.integrate import odeint
 
 
+N_BURN = 1000
+N_SAMPLE = 3000
+
 def SIR(y, t, p):
     ds = -p[0] * y[0] * y[1]
     di = p[0] * y[0] * y[1] - p[1] * y[1]
@@ -17,7 +20,7 @@ def SIR(y, t, p):
 
 
 if __name__ == "__main__":
-    data = pd.read_csv("data/cases_by_status_and_phu.csv", index_col="PHU_NAME")
+    data = pd.read_csv("../data/cases_by_status_and_phu.csv", index_col="PHU_NAME")
     toronto_data = data.loc["TORONTO"]
     del data
 
@@ -48,4 +51,5 @@ if __name__ == "__main__":
 
         Y = pm.Normal("Y", mu=sir_curves, sigma=sigma, observed=yobs)
 
-        trace = pm.sample(2000, tune=1000, target_accept=0.9, cores=1)
+        trace = pm.sample(N_SAMPLE, tune=N_BURN, target_accept=0.9, cores=1)
+        pm.save_trace(trace, "sir.trace")
