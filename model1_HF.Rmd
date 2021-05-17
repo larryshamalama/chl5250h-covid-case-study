@@ -20,6 +20,7 @@ new_case <- read.csv(file.path(directory, "data/COVID19.csv"))
 
 
 ```{r setup_parameters}
+
 infectious_period <- 10 # from https://www.cdc.gov/coronavirus/2019-ncov/hcp/duration-isolation.html
 latent_period <- 3 #https://link.springer.com/article/10.1007/s10237-020-01332-5
 #recovery_time <- 14
@@ -29,7 +30,8 @@ active <- 570
 resolved <- 11791
 deaths <- 1070
 N <- 2.3 * 1000000 #population of toronto
-S <- N - active - resolved -deaths# number of susceptible individuals 
+S <- N - active - resolved - deaths # number of susceptible individuals 
+D <- deaths
 
 #calculating beta
 #kirkby recommends using sampling time < time it takes one individual to infect another
@@ -59,7 +61,8 @@ seir <- function(beta, gamma, delta, S, I, resolved, N) {
   W <- S
   X <- I
   Y <- resolved
-  Z <- N - W - X - Y 
+  Z <- N - W - X - Y - deaths 
+  D <- D/N
   
   seir_model = function (current_timepoint, state_values, parameters)
   {
@@ -73,10 +76,10 @@ seir <- function(beta, gamma, delta, S, I, resolved, N) {
       as.list (parameters),     # variable names within parameters can be used 
       {
         # compute derivatives
-        dS = (-beta * S * I)
-        dE = (beta * S * I) - (delta * E)
-        dI = (delta * E) - (gamma * I)
-        dR = (gamma * I)
+        dS = (-beta * S * I) 
+        dE = (beta * S * I) - (delta * E) 
+        dI = (delta * E) - (gamma * I) 
+        dR = (gamma * I) 
         
         # combine results
         results = c (dS, dE, dI, dR)
@@ -95,6 +98,51 @@ output <- seir(beta, gamma, delta, S, I, resolved, N)
 
 ```
 
+```{r seir2}
+
+#code for SEIR
+seir2 <- function(beta, gamma, delta, S, I, D, resolved, N) {
+  parameter_list <- c(beta, gamma, delta)
+  W <- S
+  X <- I
+  Y <- resolved
+  Z <- N - W - X - Y - deaths 
+  D <- D/N
+  
+  seir_model = function (current_timepoint, state_values, parameters)
+  {
+    # create state variables (local variables)
+    S = state_values [1]        # susceptibles
+    E = state_values [2]        # exposed
+    I = state_values [3]        # infectious
+    R = state_values [4]        # recovered
+    
+    with ( 
+      as.list (parameters),     # variable names within parameters can be used 
+      {
+        # compute derivatives
+        dS = (-beta * S * I) - (D * S)
+        dE = (beta * S * I) - (delta * E) - (D * I)
+        dI = (delta * E) - (gamma * I) - (D * E)
+        dR = (gamma * I) - (D * R)
+        
+        # combine results
+        results = c (dS, dE, dI, dR)
+        list (results)
+      }
+    )
+  }
+  
+  initial_values = c (S = W/N, E = X/N, I = Y/N, R = Z/N)
+  timepoints = seq (0, 200, by=1)
+  output = lsoda(initial_values, timepoints, seir_model, parameter_list)
+  return(output)
+}
+
+output2 <- seir2(beta, gamma, delta, S, I, D, resolved, N)
+
+```
+
 ```{r plot}
 
 plot (S ~ time, data = output, type='b', ylim = c(0,1), col = 'blue', ylab = 'S, E, I, R', main = 'SEIR epidemic') 
@@ -107,12 +155,66 @@ plot (R ~ time, data = output, type='b', ylim = c(0,1), col = 'green', ylab = ''
 legend(140, 1, legend = c("Susceptible", "Exposed", "Infected", "Recovered"), col = c("blue", "pink", "red", "green"), lty =1, cex= 0.8)
 
 # Updated code
-matplot(output[,'time'], output[,c('S','E','I','R')], col=c('blue','pink','red','green'), type = 'l', lty=2,
-        ylim = c(0,0.1))
-legend(140, 1, legend = c("Susceptible", "Exposed", "Infected", "Recovered"), col = c("blue", "pink", "red", "green"), lty =1, cex= 0.8)
+matplot(output[,'time'], output[,c('S','E','I','R')], 
+        col=c('blue','pink','red','green'), type = 'l', lty=2,
+        xlab = 'Time', ylab = 'S, E, I, R')
+legend(140, 1, legend = c("Susceptible", "Exposed", "Infected", "Recovered"), 
+       col = c("blue", "pink", "red", "green"), lty =1, cex= 0.8)
+
+matplot(output2[,'time'], output2[,c('S','E','I','R')], 
+        col=c('blue','pink','red','green'), type = 'l', lty=2,
+        xlab = 'Time', ylab = 'S, E, I, R')
+legend(140, 1, legend = c("Susceptible", "Exposed", "Infected", "Recovered"), 
+       col = c("blue", "pink", "red", "green"), lty =1, cex= 0.8)
 
 ```
+```{r dailyTorontoData}
 
+covid_toronto <- read.csv('data/COVID19.csv')
+
+tor_daily_cases <- covid_toronto %>% 
+  mutate(Episode.Date = as.Date(Episode.Date)) %>%
+  filter(Episode.Date <= as.Date('2020-04-10')) %>% group_by(Episode.Date) %>%
+  summarise(Cases = n())
+
+tor_daily_recovered <- covid_toronto %>% 
+  mutate(Episode.Date = as.Date(Episode.Date)) %>%
+  filter(Episode.Date <= as.Date('2020-04-10') & Outcome == 'RESOLVED') %>% 
+  group_by(Episode.Date) %>%
+  summarise(Recovered = n()) %>%
+  mutate(Episode.Date = Episode.Date+14)
+
+tor_daily_deaths <- covid_toronto %>% 
+  mutate(Episode.Date = as.Date(Episode.Date)) %>%
+  filter(Episode.Date <= as.Date('2020-04-10') & Outcome == 'FATAL') %>% 
+  group_by(Episode.Date) %>%
+  summarise(Deaths = n()) %>%
+  mutate(Episode.Date = Episode.Date+14)
+
+date_range <- as.Date(range(tor_daily_cases$Episode.Date))
+date_seq <- data.frame(Date = seq(date_range[1], date_range[2], by=1))
+tor_early <- merge(
+  merge(
+  merge(date_seq, tor_daily_cases, by.x='Date', by.y='Episode.Date', all.x=TRUE),
+  tor_daily_recovered, by.x='Date', by.y='Episode.Date', all.x=TRUE),
+  tor_daily_deaths, by.x='Date', by.y='Episode.Date', all.x=TRUE)
+
+tor_early <- tor_early %>%
+  mutate(Cases = ifelse(is.na(Cases), 0, Cases),
+         Recovered = ifelse(is.na(Recovered), 0, Recovered),
+         Deaths = ifelse(is.na(Deaths), 0, Deaths),
+         )
+
+matplot(tor_early$Date, tor_early[c("Cases","Recovered","Deaths")], 
+        type = 'l', xaxs='i', yaxs='i', 
+        xlab = 'Date', ylab = 'Count', 
+        col = c('blue','green','black'), lty = 1,
+        xlim = c(as.Date('2020-02-01'), as.Date('2020-04-10')),
+        ylim = c(0, 120))
+abline(v = as.Date('2020-03-15'), col = 'darkgrey', lty = 2)
+
+
+```
 
 ```{r simulations}
 
@@ -140,7 +242,7 @@ matplot(x[,'time'], x[,c('S','E','I','R')], col=scales::alpha(c('blue','magenta'
   
 ```
 
-```{r plot_obs}
+```{r plot_obs, fig.height = 3, fig.width = 12}
 
 # Calculate S, EI, and R from Observed data
 cases_sort$Date <- as.Date(cases_sort$FILE_DATE)
@@ -159,12 +261,112 @@ matplot(cases_sort[,'Date'], cases_sort[, c('S','EI','R')],
         ylab = 'Probability', xlab = 'Date',
         main = 'Y-axis limited')
 
+
+par(mfrow = c(1,3), mar = c(3.5,4,1,3), oma = c(0,0,0,4), mgp = c(2.3, 1, 0), font.lab = 2, cex.lab =1.1)
+# 2020-4-20 to 2020-5-20
+idx2 <- which(cases_sort$Date %in% as.Date(c('2020-04-20','2020-05-20')))
+matplot(cases_sort[idx2[1]:idx2[2],'Date'], cases_sort[idx2[1]:idx2[2], c('EI','R')], 
+        ylim = c(0, 0.04),
+        col = c('red','green'), type = 'l',  lty = 1,
+        ylab = c('EI, R'), xlab = 'Date',
+        main = '2020-4-20 to 2020-5-20')
+par(new = TRUE)
+plot(cases_sort[idx2[1]:idx2[2],'Date'], cases_sort[idx2[1]:idx2[2],'S'], 
+     col = 'blue', type = "l", axes = FALSE, bty = "n", xlab = "", ylab = "",
+     ylim = c(0.965, 1.0))
+axis(side=4, at = seq(0.95,1,by=0.01))
+mtext("S", side = 4, line = 2, cex = 0.8, font =2)
+
+# 2020-5-20 to 2020-7-6
+idx3 <- which(cases_sort$Date %in% as.Date(c('2020-05-20','2020-07-06')))
+matplot(cases_sort[idx3[1]:idx3[2],'Date'], cases_sort[idx3[1]:idx3[2], c('EI','R')], 
+        ylim = c(0, 0.04),
+        col = c('red','green'), type = 'l', lty = 1,
+        ylab = c('EI, R'), xlab = 'Date',
+        main = '2020-5-20 to 2020-7-6')
+par(new = TRUE)
+plot(cases_sort[idx3[1]:idx3[2],'Date'], cases_sort[idx3[1]:idx3[2],'S'], 
+     col = 'blue', type = "l", axes = FALSE, bty = "n", xlab = "", ylab = "",
+     ylim = c(0.965, 1.0))
+axis(side=4, at = seq(0.95,1,by=0.01))
+mtext("S", side = 4, line = 2, cex = 0.8, font =2)
+
+# 2020-07-06 onwards
 idx <- which(cases_sort$Date == '2020-07-06')
-matplot(cases_sort[97:(97+200),'Date'], cases_sort[97:(97+200), c('S','EI','R')], 
-        ylim = c(0, 0.1),
-        col = c('blue','red','green'), type = 'l',
-        ylab = 'Probability', xlab = 'Date',
+matplot(cases_sort[97:(97+200),'Date'], cases_sort[97:(97+200), c('EI','R')], 
+        ylim = c(0, 0.04),
+        col = c('red','green'), type = 'l',  lty = 1,
+        ylab = c('EI, R'), xlab = 'Date',
         main = '2020-Jul-06 onwards')
+par(new = TRUE)
+plot(cases_sort[97:(97+200),'Date'], cases_sort[97:(97+200),'S'], 
+     col = 'blue', type = "l", axes = FALSE, bty = "n", xlab = "", ylab = "",
+     ylim = c(0.95, 1.0))
+axis(side=4, at = seq(0.95,1,by=0.01))
+mtext("S", side = 4, line = 2, cex = 0.8, font =2)
+legend('left',legend=c('Susceptible','Infected','Recovered'),col=c('blue','red','green'), lty = 1, bty="n",xpd=NA)
 
 ```
 
+```{r seir_match_obs, fig.height = 5, fig.width = 12}
+
+#--------------------------------
+# At 2020-4-20
+
+dateIdx <- which(cases$FILE_DATE == '2020-04-20')
+activeApr <- cases[dateIdx, 'ACTIVE_CASES'] 
+resolvedApr <- cases[dateIdx, 'RESOLVED_CASES'] 
+deathsApr <- cases[dateIdx, 'DEATHS'] 
+N <- 2.3 * 1000000 #population of toronto
+Sapr <- N - activeApr - resolvedApr - deathsApr # number of susceptible individuals 
+Dapr <- deathsApr
+
+#calculating beta
+#kirkby recommends using sampling time < time it takes one individual to infect another
+#calculation for transmission rate by https://www.nature.com/articles/s41598-017-09209-x
+
+t <- 7 #sampling interval 
+datePriorIdx <- which(cases$FILE_DATE == (as.Date('2020-04-20')-7))
+InewApr <- cases[dateIdx, 'RESOLVED_CASES'] - cases[datePriorIdx, 'RESOLVED_CASES'] #number of new infections since last sample (from 04-14 to 04-20)
+Iapr <- activeApr #number of infected individuals
+
+#betaApr <- (-1/t) * log(1-InewApr*((1/Iapr)+(1/Sapr)))
+betaAprObs <- 0.111
+
+#parameters
+gamma <- 1/infectious_period
+delta <- 1/latent_period
+
+# Fit SEIR
+output.april <- seir2(betaAprObs, gamma, delta, Sapr, Iapr, Dapr, resolvedApr, N)
+
+### Plot (side-by-side)
+par(mfrow=c(1,2), mar = c(3.5,4,1,3), oma = c(0,0,2,4), mgp = c(2.3, 1, 0), font.lab = 2, cex.lab =1.1)
+
+idx2 <- which(cases_sort$Date %in% as.Date(c('2020-04-20','2020-05-20')))
+matplot(cases_sort[idx2[1]:idx2[2],'Date'], cases_sort[idx2[1]:idx2[2], c('EI','R')], 
+        ylim = c(0, 0.04),
+        col = c('red','green'), type = 'l',  lty = 1,
+        ylab = c('EI, R'), xlab = 'Date',
+        main = 'Observed')
+par(new = TRUE)
+plot(cases_sort[idx2[1]:idx2[2],'Date'], cases_sort[idx2[1]:idx2[2],'S'], 
+     col = 'blue', type = "l", axes = FALSE, bty = "n", xlab = "", ylab = "",
+     ylim = c(0.965, 1.0))
+axis(side=4, at = seq(0.95,1,by=0.01))
+mtext("S", side = 4, line = 2, cex = 1.1, font =2)
+mtext("2020-04-20 to 2020-05-20", side = 3, line = 1, font = 2, cex = 1.5, outer = TRUE)
+
+matplot(output.april[,'time'], output.april[,c('E','I','R')], 
+        col=c('pink','red','green'), type = 'l', lty=2, xlim = c(0,30),
+        xlab = 'Time', ylab = 'E, I, R', main = 'Estimated')
+legend(20, 1, legend = c("Susceptible", "Exposed", "Infected", "Recovered"), 
+       col = c("blue", "pink", "red", "green"), lty =1, cex= 0.8)
+par(new = TRUE)
+plot(output.april[,'time'], output.april[,c('S')], 
+     col = 'blue', type = "l", axes = FALSE, bty = "n", xlab = "", ylab = "",
+     ylim = c(0.95, 1.0))
+axis(side=4, at = seq(0.95,1,by=0.01))
+mtext("S", side = 4, line = 2, cex = 1.1, font =2)
+
+```
