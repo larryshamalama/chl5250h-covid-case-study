@@ -59,14 +59,52 @@ sir.calc <- function(date, t=1, N=14570000){
 
 df$beta <- sir.calc(df$FILE_DATE)
 
+## Add columns
+# Moving average
+library(runner); library(psych)
+df <- df %>% 
+  mutate(Date = as.Date(FILE_DATE),
+         roll_mean  = zoo::rollmean(beta, k = 7, fill = NA), # seven day moving average
+         roll_geo = runner(beta, k = 7, idx = Date, f = geometric.mean))  # seven day geometric moving average
+
+matplot(df$Date, df[c('roll_mean','roll_geo')], type = 'l', lty = 1) # not much difference between arithmetic and geometric moving average 
+
+# Temperature data
+temperature <- read.csv2('data/en_climate_daily_ON_6158355_2020_2021_P1D.csv', sep=',')
+temperature$Date <- as.Date(temperature$Date.Time, format="%m/%d/%Y")
+temperature$DailyMean <- as.numeric(temperature$Mean.Temp..Â.C.)
+
+# merge temperature data to df
+df <- df %>% left_join(temperature[c('Date','DailyMean')], by = 'Date')
+
 #graphing proportion active cases and beta
 
 coeff = 10
 
+springIdx <- grep('2020-03-20|2020-06-20',df$FILE_DATE)
+springIdx <- c(0, springIdx)
+summerIdx <- grep('2020-06-20|2020-09-21',df$FILE_DATE)
+fallIdx <- grep('2020-09-21|2020-12-20',df$FILE_DATE)
+winterIdx <- grep('2020-12-20|2021-03-20',df$FILE_DATE)
+springIdxNew <- grep('2021-03-20|2021-06-20',df$FILE_DATE)
+springIdxNew <- c(springIdxNew, nrow(df))
+
 ggplot(df, aes(x = FILE_DATE))+
   geom_point(aes(y = act.p)) +
-  geom_point(aes(y = beta/coeff)) +
-  scale_y_continuous(name = 'proportion active cases', sec.axis = sec_axis(~.*coeff, name = 'beta'))+
+  annotate("rect", xmin = springIdx[1], xmax = springIdx[2], ymin = -Inf, ymax = Inf,
+           alpha = 0.2, fill = "green1") +
+  annotate("rect", xmin = summerIdx[1], xmax = summerIdx[2], ymin = -Inf, ymax = Inf,
+           alpha = 0.1,  fill = "salmon") +
+  annotate("rect", xmin = fallIdx[1], xmax = fallIdx[2], ymin = -Inf, ymax = Inf,
+           alpha = 0.3,  fill = "pink") +
+  annotate("rect", xmin = winterIdx[1], xmax = winterIdx[2], ymin = -Inf, ymax = Inf,
+           alpha = 0.1, fill = "blue1") +
+  annotate("rect", xmin = springIdxNew[1], xmax = springIdxNew[2], ymin = -Inf, 
+           ymax = Inf, alpha = 0.2, fill = "green1") +
+  geom_point(aes(y = act.p)) +
+  geom_point(aes(y = roll_mean/coeff), color='violetred') +
+  scale_y_continuous(name = 'proportion active cases', 
+                     sec.axis = sec_axis(~.*coeff, name = 'beta'))+
   theme(axis.text.x = element_text(angle = 90))+
   geom_vline(xintercept = c('2020-09-08'), color = 'blue', size = .5) + #schools open
   geom_vline(xintercept = c('2020-09-17'), color = 'blue', size = .5) + #gathering limits reduced
@@ -83,10 +121,16 @@ ggplot(df, aes(x = FILE_DATE))+
   geom_vline(xintercept = c('2020-12-14'), color = 'blue', size = .5) + #york, windsor moved to lockdown
   geom_vline(xintercept = c('2020-12-15'), color = 'blue', size = .5) + #pfizer vaccine administration begins
   geom_vline(xintercept = c('2020-12-21'), color = 'blue', size = .5) + #hamilton moves to lockdown
-  geom_vline(xintercept = c('2020-12-26'), color = 'blue', size = .5) + #provincewide shutdown
+  geom_vline(xintercept = c('2020-12-26'), color = 'red', size = .5) + #provincewide shutdown
   geom_vline(xintercept = c('2021-01-14'), color = 'blue', size = .5) + #additional stay at home orders 
   geom_vline(xintercept = c('2021-01-29'), color = 'blue', size = .5) + #new travel restrictions - individuals on foreign flights required to take PCR test
   geom_vline(xintercept = c('2021-02-10'), color = 'blue', size = .5) + #stayat home orders lifted in some areas
   geom_vline(xintercept = c('2021-03-03'), color = 'blue', size = .5) + #first AZ vaccines distributed in torotno windsor kingston
   geom_vline(xintercept = c('2021-03-05'), color = 'blue', size = .5) + #ontario exits stay at home orders.  toronto/ peel enter lockdown
-  geom_vline(xintercept = c('2021-04-08'), color = 'blue', size = .5) #second stay at home order, vaccinations by postal codes
+  geom_vline(xintercept = c('2021-04-08'), color = 'red', size = .5) + #second stay at home order, vaccinations by postal codes
+  scale_x_discrete(breaks = df$FILE_DATE[grepl('01$',df$FILE_DATE)]) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  xlab("Date")
+
+
+
