@@ -106,28 +106,28 @@ ggplot(df, aes(x = FILE_DATE))+
   scale_y_continuous(name = 'proportion active cases', 
                      sec.axis = sec_axis(~.*coeff, name = 'beta'))+
   theme(axis.text.x = element_text(angle = 90))+
-  geom_vline(xintercept = c('2020-09-08'), color = 'blue', size = .5) + #schools open
-  geom_vline(xintercept = c('2020-09-17'), color = 'blue', size = .5) + #gathering limits reduced
-  geom_vline(xintercept = c('2020-09-25'), color = 'blue', size = .5) + #restrictions on opening hours for bars/restaurants
-  geom_vline(xintercept = c('2020-09-28'), color = 'blue', size = .5) + #indoor dining banned
-  geom_vline(xintercept = c('2020-10-02'), color = 'blue', size = .5) + #capacity limits on bars/ gyms
-  geom_vline(xintercept = c('2020-10-10'), color = 'blue', size = .5) + #Peel/ ottawa/ toronto back to stage 2
-  geom_vline(xintercept = c('2020-10-16'), color = 'blue', size = .5) + #york moved to stage 2
-  geom_vline(xintercept = c('2020-11-06'), color = 'blue', size = .5) + #Peel moved to red tier
-  geom_vline(xintercept = c('2020-11-07'), color = 'blue', size = .5) + #Shift to 5 tier ssystem to determine restrictions
-  geom_vline(xintercept = c('2020-11-14'), color = 'blue', size = .5) + #toronto moved to red tier
-  geom_vline(xintercept = c('2020-11-16'), color = 'blue', size = .5) + # other regions moved to red tier
-  geom_vline(xintercept = c('2020-11-23'), color = 'blue', size = .5) + #all non-essential businessess closed
-  geom_vline(xintercept = c('2020-12-14'), color = 'blue', size = .5) + #york, windsor moved to lockdown
-  geom_vline(xintercept = c('2020-12-15'), color = 'blue', size = .5) + #pfizer vaccine administration begins
-  geom_vline(xintercept = c('2020-12-21'), color = 'blue', size = .5) + #hamilton moves to lockdown
-  geom_vline(xintercept = c('2020-12-26'), color = 'red', size = .5) + #provincewide shutdown
-  geom_vline(xintercept = c('2021-01-14'), color = 'blue', size = .5) + #additional stay at home orders 
-  geom_vline(xintercept = c('2021-01-29'), color = 'blue', size = .5) + #new travel restrictions - individuals on foreign flights required to take PCR test
-  geom_vline(xintercept = c('2021-02-10'), color = 'blue', size = .5) + #stayat home orders lifted in some areas
-  geom_vline(xintercept = c('2021-03-03'), color = 'blue', size = .5) + #first AZ vaccines distributed in torotno windsor kingston
-  geom_vline(xintercept = c('2021-03-05'), color = 'blue', size = .5) + #ontario exits stay at home orders.  toronto/ peel enter lockdown
-  geom_vline(xintercept = c('2021-04-08'), color = 'red', size = .5) + #second stay at home order, vaccinations by postal codes
+  geom_vline(xintercept = c('2020-09-08'), color = 'blue', size = .25) + #schools open
+  geom_vline(xintercept = c('2020-09-17'), color = 'blue', size = .25) + #gathering limits reduced
+  geom_vline(xintercept = c('2020-09-25'), color = 'blue', size = .25) + #restrictions on opening hours for bars/restaurants
+  geom_vline(xintercept = c('2020-09-28'), color = 'blue', size = .25) + #indoor dining banned
+  geom_vline(xintercept = c('2020-10-02'), color = 'blue', size = .25) + #capacity limits on bars/ gyms
+  geom_vline(xintercept = c('2020-10-10'), color = 'blue', size = .25) + #Peel/ ottawa/ toronto back to stage 2
+  geom_vline(xintercept = c('2020-10-16'), color = 'blue', size = .25) + #york moved to stage 2
+  geom_vline(xintercept = c('2020-11-06'), color = 'blue', size = .25) + #Peel moved to red tier
+  geom_vline(xintercept = c('2020-11-07'), color = 'blue', size = .25) + #Shift to 5 tier ssystem to determine restrictions
+  geom_vline(xintercept = c('2020-11-14'), color = 'blue', size = .25) + #toronto moved to red tier
+  geom_vline(xintercept = c('2020-11-16'), color = 'blue', size = .25) + # other regions moved to red tier
+  geom_vline(xintercept = c('2020-11-23'), color = 'blue', size = .25) + #all non-essential businessess closed
+  geom_vline(xintercept = c('2020-12-14'), color = 'blue', size = .25) + #york, windsor moved to lockdown
+  geom_vline(xintercept = c('2020-12-15'), color = 'blue', size = .25) + #pfizer vaccine administration begins
+  geom_vline(xintercept = c('2020-12-21'), color = 'blue', size = .25) + #hamilton moves to lockdown
+  geom_vline(xintercept = c('2020-12-26'), color = 'red', size = 1.0) + #provincewide shutdown
+  geom_vline(xintercept = c('2021-01-14'), color = 'blue', size = .25) + #additional stay at home orders 
+  geom_vline(xintercept = c('2021-01-29'), color = 'blue', size = .25) + #new travel restrictions - individuals on foreign flights required to take PCR test
+  geom_vline(xintercept = c('2021-02-10'), color = 'blue', size = .25) + #stayat home orders lifted in some areas
+  geom_vline(xintercept = c('2021-03-03'), color = 'blue', size = .25) + #first AZ vaccines distributed in torotno windsor kingston
+  geom_vline(xintercept = c('2021-03-05'), color = 'blue', size = .25) + #ontario exits stay at home orders.  toronto/ peel enter lockdown
+  geom_vline(xintercept = c('2021-04-08'), color = 'red', size = 1.0) + #second stay at home order, vaccinations by postal codes
   scale_x_discrete(breaks = df$FILE_DATE[grepl('01$',df$FILE_DATE)]) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   xlab("Date")
