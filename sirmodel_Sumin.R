@@ -25,7 +25,7 @@ mydata = cases %>% filter(pruid==35) %>%
         mutate(conftotal=cumsum(numtoday)) %>%
         mutate(S=max(numtests)) %>%
         mutate(E=rollapplyr(numtoday,width=latent_period,FUN=sum,partial=T)) %>%
-        mutate(I=numactive-E ,R=numrecoveredtoday) %>% drop_na(conftotal)%>%
+        mutate(I=numactive-E ,R=numrecover) %>% drop_na(conftotal)%>%
         complete(date = full_seq(date, period = 1))
 # mydata=cases[cases$pruid==35,]
 # mydata=mydata[,which(names(mydata) %in% c("prname","date","numtoday","numdeathstoday","numrecoveredtoday","numactive","numtestedtoday","numteststoday"))]
@@ -168,24 +168,28 @@ output2=Reduce( rbind.data.frame,output2)
 #observed plot vs estimated rate
 par(mfrow=c(2, 2))
 ymax=max(mydata$S/mydata$N,output$S,na.rm=T)
-matplot(mydata$time,mydata$S/mydata$N,type = 'l',col='blue',ylim=c(0,1),xlim=c(0,410),xlab="time",ylab="rate",main="Susceptible")
+ymin=min(mydata$S/mydata$N,output$S,na.rm=T)
+matplot(mydata$time,mydata$S/mydata$N,type = 'l',col='blue',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="rate",main="Susceptible")
 par(new = TRUE)
-matplot(output$time,output$S,type = 'l',col='red',ylim=c(0,1),xlim=c(0,410),xlab="time",ylab="rate")
+matplot(output$time,output$S,type = 'l',col='red',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="rate")
 
 ymax=max(mydata$E/mydata$N,output$E,na.rm=T)
-matplot(mydata$time,mydata$E/mydata$N,type = 'l',col='blue',ylim=c(0,1),xlim=c(0,410),xlab="time",ylab="rate",main="Exposed")
+ymin=min(mydata$E/mydata$N,output$E,na.rm=T)
+matplot(mydata$time,mydata$E/mydata$N,type = 'l',col='blue',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="rate",main="Exposed")
 par(new = TRUE)
-matplot(output$time,output$E,type = 'l',col='red',ylim=c(0,1),xlim=c(0,410),xlab="time",ylab="rate")
+matplot(output$time,output$E,type = 'l',col='red',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="rate")
 
 ymax=max(mydata$I/mydata$N,output$I,na.rm=T)
-matplot(mydata$time,mydata$I/mydata$N,type = 'l',col='blue',ylim=c(0,1),xlim=c(0,410),xlab="time",ylab="rate",main="Infectious")
+ymin=min(mydata$I/mydata$N,output$I,na.rm=T)
+matplot(mydata$time,mydata$I/mydata$N,type = 'l',col='blue',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="rate",main="Infectious")
 par(new = TRUE)
-matplot(output$time,output$I,type = 'l',col='red',ylim=c(0,1),xlim=c(0,410),xlab="time",ylab="rate")
+matplot(output$time,output$I,type = 'l',col='red',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="rate")
 
 ymax=max(mydata$R/mydata$N,output$R,na.rm=T)
-matplot(mydata$time,mydata$R/mydata$N,type = 'l',col='blue',ylim=c(0,1),xlim=c(0,410),xlab="time",ylab="rate",main="Recovered")
+ymin=min(mydata$R/mydata$N,output$R,na.rm=T)
+matplot(mydata$time,mydata$R/mydata$N,type = 'l',col='blue',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="rate",main="Recovered")
 par(new = TRUE)
-matplot(output$time,output$R,type = 'l',col='red',ylim=c(0,1),xlim=c(0,410),xlab="time",ylab="rate")
+matplot(output$time,output$R,type = 'l',col='red',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="rate")
 
 
 
@@ -200,16 +204,19 @@ par(new = TRUE)
 matplot(output$time,output$S*mydata$N,type = 'l',col='red',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="count")
 
 ymax=max(mydata$E,output$E*mydata$N,na.rm=T)
+ymin=min(mydata$E,output$E*mydata$N,na.rm=T)
 matplot(mydata$time,mydata$E,type = 'l',col='blue',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count",main="Exposed")
 par(new = TRUE)
 matplot(output$time,output$E*mydata$N,type = 'l',col='red',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count")
 
 ymax=max(mydata$I,output$I*mydata$N,na.rm=T)
+ymin=min(mydata$I,output$I*mydata$N,na.rm=T)
 matplot(mydata$time,mydata$I,type = 'l',col='blue',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count",main="Infectious")
 par(new = TRUE)
 matplot(output$time,output$I*mydata$N,type = 'l',col='red',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count")
 
 ymax=max(mydata$R,output$R*mydata$N,na.rm=T)
+ymin=min(mydata$R,output$R*mydata$N,na.rm=T)
 matplot(mydata$time,mydata$R,type = 'l',col='blue',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count",main="Recovered")
 par(new = TRUE)
 matplot(output$time,output$R*mydata$N,type = 'l',col='red',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count")
