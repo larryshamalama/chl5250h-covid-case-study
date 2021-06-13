@@ -1,0 +1,36 @@
+---
+title: "Regression on Beta"
+output: html_notebook
+---
+# Load Data
+```{r}
+df <- read.delim("data/lena-dataframe.txt",header = TRUE,sep = " ")
+```
+
+# Check Beta 
+```{r}
+hist(df$beta, breaks = 100)
+```
+```{r}
+hist(log(df$beta),breaks = 100)
+```
+
+# Regression with Temperature
+```{r}
+m1 <- lm(log(df$beta) ~ DailyMean, data = df)
+summary(m1)
+```
+```{r}
+plot(m1)
+```
+
+# Regression with Temperature and Lockdown Indicator
+```{r}
+df$ld <- as.factor(c(rep("N",283),rep("Y",47),rep("N",56),rep("Y",31)))
+m2 <- lm(log(df$beta) ~ DailyMean + ld, data = df)
+summary(m2)
+```
+```{r}
+plot(m2)
+```
+
