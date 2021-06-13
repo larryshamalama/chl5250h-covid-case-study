@@ -34,3 +34,13 @@ summary(m2)
 plot(m2)
 ```
 
+# Regression with Lockdown Indicator
+```{r}
+m3 <- lm(log(df$beta) ~ ld, data = df)
+summary(m3)
+```
+
+```{r}
+plot(m3)
+```
+
