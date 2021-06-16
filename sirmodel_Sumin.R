@@ -199,27 +199,36 @@ output=output[1:nrow(mydata),]
 par(mfrow=c(2, 2))
 ymax=max(mydata$S,output$S*mydata$N,na.rm=T)
 ymin=min(mydata$S,output$S*mydata$N,na.rm=T)
+#xmax=mydata$date[1]
+#xmin=mydata$date[length(mydata$date)]
 matplot(mydata$time,mydata$S,type = 'l',col='blue',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="count",main="Susceptible")
 par(new = TRUE)
 matplot(output$time,output$S*mydata$N,type = 'l',col='red',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="count")
 
 ymax=max(mydata$E,output$E*mydata$N,na.rm=T)
 ymin=min(mydata$E,output$E*mydata$N,na.rm=T)
-matplot(mydata$time,mydata$E,type = 'l',col='blue',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count",main="Exposed")
+matplot(mydata$time,mydata$E,type = 'l',col='blue',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="count",main="Exposed")
 par(new = TRUE)
-matplot(output$time,output$E*mydata$N,type = 'l',col='red',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count")
+matplot(output$time,output$E*mydata$N,type = 'l',col='red',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="count")
+
+#interventions=as.Date(c('2020-09-08','2020-09-17','2020-09-25','2020-09-28','2020-10-02','2020-10-10','2020-10-16','2020-11-06','2020-11-07','2020-11-14',
+#                       '2020-11-16','2020-11-23','2020-12-14','2020-12-15','2020-12-21','2020-12-26','2021-01-14','2021-01-29','2021-02-10','2021-03-03','2021-03-05','2021-04-08'))
+#lockdowns=as.Date(c('2020-12-26','2021-04-08'))
+#abline(v=interventions-start+1) 
+#abline(v=lockdowns-start+1,col="orange")
+
 
 ymax=max(mydata$I,output$I*mydata$N,na.rm=T)
 ymin=min(mydata$I,output$I*mydata$N,na.rm=T)
-matplot(mydata$time,mydata$I,type = 'l',col='blue',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count",main="Infectious")
+matplot(mydata$time,mydata$I,type = 'l',col='blue',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="count",main="Infectious")
 par(new = TRUE)
-matplot(output$time,output$I*mydata$N,type = 'l',col='red',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count")
+matplot(output$time,output$I*mydata$N,type = 'l',col='red',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="count")
 
 ymax=max(mydata$R,output$R*mydata$N,na.rm=T)
 ymin=min(mydata$R,output$R*mydata$N,na.rm=T)
-matplot(mydata$time,mydata$R,type = 'l',col='blue',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count",main="Recovered")
+matplot(mydata$time,mydata$R,type = 'l',col='blue',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="count",main="Recovered")
 par(new = TRUE)
-matplot(output$time,output$R*mydata$N,type = 'l',col='red',ylim=c(0,ymax),xlim=c(0,410),xlab="time",ylab="count")
+matplot(output$time,output$R*mydata$N,type = 'l',col='red',ylim=c(ymin,ymax),xlim=c(0,410),xlab="time",ylab="count")
 
 
 interventions=as.Date(c('2020-09-08','2020-09-17','2020-09-25','2020-09-28','2020-10-02','2020-10-10','2020-10-16','2020-11-06','2020-11-07','2020-11-14',
@@ -228,8 +237,80 @@ lockdowns=as.Date(c('2020-12-26','2021-04-08'))
 abline(v=interventions-start+1) 
 abline(v=lockdowns-start+1,col="orange")
 
+#rate ggplot
 
+p1=ggplot(df,aes(x=date))+geom_line(aes(y=S/N,col="Observed"),size=1.3)+
+  theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
+  geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
+  geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
+  scale_y_continuous(name="Susceptible (rate)", labels = scales::comma)+
+  geom_line(mapping=aes(y=Shat,col="Fitted"),size=1.3)+
+  scale_colour_manual(name = "", values=cols)+
+  theme(axis.text=element_text(size=7))
+p2=ggplot(df,aes(x=date))+geom_line(aes(y=E/N,col="Observed"),size=1.3)+
+  theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
+  geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
+  geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
+  scale_y_continuous(name="Exposed (rate)", labels = scales::comma)+
+  geom_line(mapping=aes(y=Ehat,col="Fitted"),size=1.3)+
+  scale_colour_manual(name = "", values=cols)+
+  theme(axis.text=element_text(size=7))
+p3=ggplot(df,aes(x=date))+geom_line(aes(y=I/N,col="Observed"),size=1.3)+
+  theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
+  geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
+  geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
+  scale_y_continuous(name="Infectious (rate)", labels = scales::comma)+
+  geom_line(mapping=aes(y=Ihat,col="Fitted"),size=1.3)+
+  scale_colour_manual(name = "", values=cols)+
+  theme(axis.text=element_text(size=7))
+p4=ggplot(df,aes(x=date))+geom_line(aes(y=R/N,col="Observed"),size=1.3)+
+  theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
+  geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
+  geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
+  scale_y_continuous(name="Recovered (rate)", labels = scales::comma)+
+  geom_line(mapping=aes(y=Rhat,col="Fitted"),size=1.3)+
+  scale_colour_manual(name = "", values=cols)+
+  theme(axis.text=element_text(size=7))
 
+require(gridExtra)
+grid.arrange(p1, p2,p3,p4, ncol=2)
+  
+#count ggplot
+p1=ggplot(df,aes(x=date))+geom_line(aes(y=S,col="Observed"),size=1.3)+
+  theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
+  geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
+  geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
+  scale_y_continuous(name="Susceptible (count)", labels = scales::comma)+
+  geom_line(mapping=aes(y=Shat*N,col="Fitted"),size=1.3)+
+  scale_colour_manual(name = "", values=cols)+
+  theme(axis.text=element_text(size=7))
+p2=ggplot(df,aes(x=date))+geom_line(aes(y=E,col="Observed"),size=1.3)+
+  theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
+  geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
+  geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
+  scale_y_continuous(name="Exposed (count)", labels = scales::comma)+
+  geom_line(mapping=aes(y=Ehat*N,col="Fitted"),size=1.3)+
+  scale_colour_manual(name = "", values=cols)+
+  theme(axis.text=element_text(size=7))
+p3=ggplot(df,aes(x=date))+geom_line(aes(y=I,col="Observed"),size=1.3)+
+  theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
+  geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
+  geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
+  scale_y_continuous(name="Infectious (count)", labels = scales::comma)+
+  geom_line(mapping=aes(y=Ihat*N,col="Fitted"),size=1.3)+
+  scale_colour_manual(name = "", values=cols)+
+  theme(axis.text=element_text(size=7))
+p4=ggplot(df,aes(x=date))+geom_line(aes(y=R,col="Observed"),size=1.3)+
+  theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
+  geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
+  geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
+  scale_y_continuous(name="Recovered (count)", labels = scales::comma)+
+  geom_line(mapping=aes(y=Rhat*N,col="Fitted"),size=1.3)+
+  scale_colour_manual(name = "", values=cols)+
+  theme(axis.text=element_text(size=7))
+
+require(gridExtra)
+grid.arrange(p1, p2,p3,p4, ncol=2)
 
 
 
