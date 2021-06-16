@@ -238,42 +238,42 @@ abline(v=interventions-start+1)
 abline(v=lockdowns-start+1,col="orange")
 
 #rate ggplot
-
+names(output)=c("time","Shat","Ehat","Ihat","Rhat")
+mydata$time=as.numeric(mydata$time)
+df=inner_join(mydata,output,by="time")
+end=mydata$date[length(mydata$date)]
 p1=ggplot(df,aes(x=date))+geom_line(aes(y=S/N,col="Observed"),size=1.3)+
   theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
   geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
   geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
   scale_y_continuous(name="Susceptible (rate)", labels = scales::comma)+
   geom_line(mapping=aes(y=Shat,col="Fitted"),size=1.3)+
-  scale_colour_manual(name = "", values=cols)+
-  theme(axis.text=element_text(size=7))
+  theme(axis.text=element_text(size=7))+ theme(legend.title = element_blank())
 p2=ggplot(df,aes(x=date))+geom_line(aes(y=E/N,col="Observed"),size=1.3)+
   theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
   geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
   geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
   scale_y_continuous(name="Exposed (rate)", labels = scales::comma)+
   geom_line(mapping=aes(y=Ehat,col="Fitted"),size=1.3)+
-  scale_colour_manual(name = "", values=cols)+
-  theme(axis.text=element_text(size=7))
+  theme(axis.text=element_text(size=7))+ theme(legend.title = element_blank())
 p3=ggplot(df,aes(x=date))+geom_line(aes(y=I/N,col="Observed"),size=1.3)+
   theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
   geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
   geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
   scale_y_continuous(name="Infectious (rate)", labels = scales::comma)+
   geom_line(mapping=aes(y=Ihat,col="Fitted"),size=1.3)+
-  scale_colour_manual(name = "", values=cols)+
-  theme(axis.text=element_text(size=7))
+  theme(axis.text=element_text(size=7))+ theme(legend.title = element_blank())
 p4=ggplot(df,aes(x=date))+geom_line(aes(y=R/N,col="Observed"),size=1.3)+
   theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
   geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
   geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
   scale_y_continuous(name="Recovered (rate)", labels = scales::comma)+
   geom_line(mapping=aes(y=Rhat,col="Fitted"),size=1.3)+
-  scale_colour_manual(name = "", values=cols)+
-  theme(axis.text=element_text(size=7))
+  theme(axis.text=element_text(size=7))+ theme(legend.title = element_blank())
 
-require(gridExtra)
-grid.arrange(p1, p2,p3,p4, ncol=2)
+library(ggpubr)
+ggarrange(p1, p2, p3, p4, ncol=2, nrow=2, common.legend = TRUE, legend="bottom")
+
   
 #count ggplot
 p1=ggplot(df,aes(x=date))+geom_line(aes(y=S,col="Observed"),size=1.3)+
@@ -282,36 +282,30 @@ p1=ggplot(df,aes(x=date))+geom_line(aes(y=S,col="Observed"),size=1.3)+
   geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
   scale_y_continuous(name="Susceptible (count)", labels = scales::comma)+
   geom_line(mapping=aes(y=Shat*N,col="Fitted"),size=1.3)+
-  scale_colour_manual(name = "", values=cols)+
-  theme(axis.text=element_text(size=7))
+  theme(axis.text=element_text(size=7))+ theme(legend.title = element_blank()) 
 p2=ggplot(df,aes(x=date))+geom_line(aes(y=E,col="Observed"),size=1.3)+
   theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
   geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
   geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
   scale_y_continuous(name="Exposed (count)", labels = scales::comma)+
   geom_line(mapping=aes(y=Ehat*N,col="Fitted"),size=1.3)+
-  scale_colour_manual(name = "", values=cols)+
-  theme(axis.text=element_text(size=7))
+  theme(axis.text=element_text(size=7))+ theme(legend.title = element_blank()) 
 p3=ggplot(df,aes(x=date))+geom_line(aes(y=I,col="Observed"),size=1.3)+
   theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
   geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
   geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
   scale_y_continuous(name="Infectious (count)", labels = scales::comma)+
   geom_line(mapping=aes(y=Ihat*N,col="Fitted"),size=1.3)+
-  scale_colour_manual(name = "", values=cols)+
-  theme(axis.text=element_text(size=7))
+  theme(axis.text=element_text(size=7))+ theme(legend.title = element_blank()) 
 p4=ggplot(df,aes(x=date))+geom_line(aes(y=R,col="Observed"),size=1.3)+
   theme(axis.text.x = element_text(angle = 90))+scale_x_date(date_labels = "%Y.%b.%d",limits =c(start,end))+
   geom_vline(xintercept = as_date(c('2021-04-08')), color = 'orange', size = 1.3,linetype="dotted") +
   geom_vline(xintercept = as_date(c('2020-12-26')), color = 'orange', size = 1.3,linetype="dotted") +
   scale_y_continuous(name="Recovered (count)", labels = scales::comma)+
   geom_line(mapping=aes(y=Rhat*N,col="Fitted"),size=1.3)+
-  scale_colour_manual(name = "", values=cols)+
-  theme(axis.text=element_text(size=7))
+  theme(axis.text=element_text(size=7))+ theme(legend.title = element_blank()) 
 
-require(gridExtra)
-grid.arrange(p1, p2,p3,p4, ncol=2)
-
+ggarrange(p1, p2, p3, p4, ncol=2, nrow=2, common.legend = TRUE, legend="bottom")
 
 
 
