@@ -331,9 +331,11 @@ InewApr <- cases[dateIdx, 'RESOLVED_CASES'] - cases[datePriorIdx, 'RESOLVED_CASE
 Iapr <- activeApr #number of infected individuals
 
 #betaApr <- (-1/t) * log(1-InewApr*((1/Iapr)+(1/Sapr)))
-betaAprObs <- 0.111
+betaAprObs <- 0.1105
 
 #parameters
+infectious_period <- 10 #1:20
+latent_period <- 3 #2:3  
 gamma <- 1/infectious_period
 delta <- 1/latent_period
 

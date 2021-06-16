@@ -89,14 +89,15 @@ winterIdx <- grep('2020-12-20|2021-03-20',df$FILE_DATE)
 springIdxNew <- grep('2021-03-20|2021-06-20',df$FILE_DATE)
 springIdxNew <- c(springIdxNew, nrow(df))
 
+ggsave('lena-plot.png', width = 6, height = 4)
 ggplot(df, aes(x = FILE_DATE))+
   geom_point(aes(y = act.p)) +
   annotate("rect", xmin = springIdx[1], xmax = springIdx[2], ymin = -Inf, ymax = Inf,
            alpha = 0.2, fill = "green1") +
   annotate("rect", xmin = summerIdx[1], xmax = summerIdx[2], ymin = -Inf, ymax = Inf,
-           alpha = 0.1,  fill = "salmon") +
+           alpha = 0.1,  fill = "pink") +
   annotate("rect", xmin = fallIdx[1], xmax = fallIdx[2], ymin = -Inf, ymax = Inf,
-           alpha = 0.3,  fill = "pink") +
+           alpha = 0.2,  fill = "brown") +
   annotate("rect", xmin = winterIdx[1], xmax = winterIdx[2], ymin = -Inf, ymax = Inf,
            alpha = 0.1, fill = "blue1") +
   annotate("rect", xmin = springIdxNew[1], xmax = springIdxNew[2], ymin = -Inf, 
