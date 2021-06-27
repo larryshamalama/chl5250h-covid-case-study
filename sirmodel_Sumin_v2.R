@@ -305,7 +305,7 @@ mydata2 = cases_v2 %>% filter(pruid==35) %>%
   select(-numtestedtoday,-numteststoday) %>%
   drop_na() %>% mutate(date=as_date(date)) %>%
   mutate(conftotal=cumsum(numtoday)) %>%
-  mutate(N=max(numtests)) %>%
+  mutate(N=14750653) %>%
   mutate(E=rollapplyr(numtoday,width=latent_period,FUN=sum,partial=T)) %>%
   mutate(I=numactive-E ,R=numrecover) %>% drop_na(conftotal)%>%
   complete(date = full_seq(date, period = 1)) %>% mutate(S=N-E-I-R) 
