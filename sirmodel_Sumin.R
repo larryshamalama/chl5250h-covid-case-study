@@ -307,6 +307,19 @@ p4=ggplot(df,aes(x=date))+geom_line(aes(y=R,col="Observed"),size=1.3)+
 
 ggarrange(p1, p2, p3, p4, ncol=2, nrow=2, common.legend = TRUE, legend="bottom")
 
+#function to calculated different measures of error
+rmse <- function(pred, obs){
+  mse <- mean((pred - obs)^2, na.rm = TRUE)
+  rmse <- sqrt(mse)
+  rrmse <- rmse/sd(obs, na.rm = TRUE)
+  print(c(mse, rmse, rrmse))
+}
+
+# calculate values for S, E, I, R 
+rmse.s <- rmse(predicted$S, observed$S) #1.498821e+08 1.224263e+04 8.365103e-02
+rmse.e <- rmse(predicted$E, observed$E) #1.378359e+07 3.712626e+03 6.375511e-01
+rmse.i <- rmse(predicted$I, observed$I) #6.751442e+06 2.598354e+03 4.812551e-01
+rmse.r <- rmse(predicted$R, observed$R) #1.014787e+08 1.007366e+04 7.354005e-02
 
 
 
