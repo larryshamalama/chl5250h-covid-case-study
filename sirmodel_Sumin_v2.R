@@ -5,6 +5,7 @@ library(deSolve)
 library(rstudioapi)
 library(zoo)
 library(tidyr)
+library(Metrics)
 
 directory <- dirname(rstudioapi::getSourceEditorContext()$path) 
 
@@ -345,3 +346,19 @@ matplot(df2$time,df2$R,type = 'l',col='blue',ylim=c(ymin,ymax),xlab="time",ylab=
 par(new = TRUE)
 matplot(output_v2$time,output_v2$R*N,type = 'l',col='red',ylim=c(ymin,ymax),xlab="time",ylab="count")
 
+# RMSE calculation
+
+observed <- df2[, c('time', 'S', 'E', 'I', 'R')]
+predicted <- output_v2 %>% mutate(S = S*N, E = E*N, I = I*N, R=R*N)
+
+rmse.s <- rmse(observed$S, predicted$S) #818677.3
+rmse.e <- rmse(observed$E, predicted$E) #3651.17
+rmse.i <- rmse(observed$I, predicted$I) #7948.69
+rmse.r <- rmse(observed$R, predicted$R) #30716.83
+
+#relative RMSE
+
+rrmse.s <- rmse.s/sd(observed$S) #123.8984
+rrmse.e <- rmse.e/sd(observed$E) #1.480636
+rrmse.i <- rmse.i/sd(observed$I) #2.323698
+rrmse.r <- rmse.r/sd(observed$R) #2.466726
