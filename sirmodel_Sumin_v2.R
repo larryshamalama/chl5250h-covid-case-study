@@ -317,10 +317,7 @@ df2=df2[1:interval,]
 beta=mydata[which(mydata$date==as_date("2021-05-21")),c("beta")][[1]] %>%as.numeric
 output_v2=seir(beta,gamma,delta,df2$S[1],df2$E[1],df2$I[1],df2$R[1],1) %>%as.data.frame()
 
-
-par(mfrow=c(2, 2))
-N=14750653
-
+#
 par(mfrow=c(2, 2))
 N=14750653
 ymax=max(df2$S,output_v2$S*N,na.rm=T)
