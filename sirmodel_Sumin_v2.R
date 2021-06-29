@@ -317,6 +317,10 @@ df2=df2[1:interval,]
 beta=mydata[which(mydata$date==as_date("2021-05-21")),c("beta")][[1]] %>%as.numeric
 output_v2=seir(beta,gamma,delta,df2$S[1],df2$E[1],df2$I[1],df2$R[1],1) %>%as.data.frame()
 
+# Save data as RDS
+saveRDS(df2, 'data/df2.rds')
+saveRDS(output_v2, 'data/output_v2.rds')
+
 #
 par(mfrow=c(2, 2))
 N=14750653
@@ -378,9 +382,9 @@ matplot(df3$date,df3[c('S','S_N')]/byMillions,type = 'l', lty = 1, lwd = 1.5,
         xaxt = 'n',yaxt = 'n',
         col=c('blue','red'), ylim=c(ymin,ymax),
         xlab="", ylab="Population (millions)", main="Susceptible")
-text(x = mean(dateNum), y = ymin - 0.02, labels = "Date", xpd = NA, srt = 0, cex = 0.85, font = 2)
+text(x = mean(dateNum), y = ymin - (ymax-ymin)/2.2, labels = "Date", xpd = NA, srt = 0, cex = 0.85, font = 2)
 axis(1, at=xAt, labels = FALSE)
-text(x= xAt, y = par("usr")[3] - 0.008,
+text(x= xAt, y = par("usr")[3] - (ymax-ymin)/5.5,
      labels = format(as.Date(xAt), '%B %d'), 
      xpd = NA,
      srt = 45, ## Rotate the labels by 45 degrees.
@@ -396,9 +400,9 @@ matplot(df3$date,df3[c('E','E_N')],type = 'l', lty = 1, lwd = 1.5,
         xaxt = 'n',yaxt = 'n',
         col=c('blue','red'), ylim=c(ymin,ymax),
         xlab="", ylab="Population", main="Exposed")
-text(x = mean(dateNum), y = ymin - 3500, labels = "Date", xpd = NA, srt = 0, cex = 0.85, font = 2)
+text(x = mean(dateNum), y = ymin - (ymax-ymin)/2.2, labels = "Date", xpd = NA, srt = 0, cex = 0.85, font = 2)
 axis(1, at=xAt, labels = FALSE)
-text(x= xAt, y = par("usr")[3] - 1500,
+text(x= xAt, y = par("usr")[3] - (ymax-ymin)/5.5,
      labels = format(as.Date(xAt), '%B %d'), 
      xpd = NA,
      srt = 45, ## Rotate the labels by 45 degrees.
@@ -412,9 +416,9 @@ matplot(df3$date,df3[c('I','I_N')],type = 'l', lty = 1, lwd = 1.5,
         xaxt = 'n',yaxt = 'n',
         col=c('blue','red'), ylim=c(ymin,ymax),
         xlab="", ylab="Population", main="Infectious")
-text(x = mean(dateNum), y = ymin - 5500, labels = "Date", xpd = NA, srt = 0, cex = 0.85, font = 2)
+text(x = mean(dateNum), y = ymin - (ymax-ymin)/2.2, labels = "Date", xpd = NA, srt = 0, cex = 0.85, font = 2)
 axis(1, at=xAt, labels = FALSE)
-text(x= xAt, y = par("usr")[3] - 2300,
+text(x= xAt, y = par("usr")[3] - (ymax-ymin)/5.5,
      labels = format(as.Date(xAt), '%B %d'), 
      xpd = NA,
      srt = 45, ## Rotate the labels by 45 degrees.
@@ -428,9 +432,9 @@ matplot(df3$date,df3[c('R','R_N')]/byThousands,type = 'l', lty = 1, lwd = 1.5,
         xaxt = 'n',yaxt = 'n',
         col=c('blue','red'), ylim=c(ymin,ymax),
         xlab="", ylab="Population (thousands)", main="Recovered")
-text(x = mean(dateNum), y = ymin - 20, labels = "Date", xpd = NA, srt = 0, cex = 0.85, font = 2)
+text(x = mean(dateNum), y = ymin - (ymax-ymin)/2.2, labels = "Date", xpd = NA, srt = 0, cex = 0.85, font = 2)
 axis(1, at=xAt, labels = FALSE)
-text(x= xAt, y = par("usr")[3] -8.5,
+text(x= xAt, y = par("usr")[3] -(ymax-ymin)/5.5,
      labels = format(as.Date(xAt), '%B %d'), 
      xpd = NA,
      srt = 45, ## Rotate the labels by 45 degrees.
@@ -449,7 +453,7 @@ dev.off()
 # RMSE calculation
 
 observed <- df2[, c('time', 'S', 'E', 'I', 'R')]
-predicted <- output_v2 %>% mutate(S = S*N, E = E*N, I = I*N, R=R*N)
+predicted <- output_v2 %>% mutate(S = S_est*N, E = E_est*N, I = I_est*N, R=R_est*N)
 
 rmse.s <- rmse(observed$S, predicted$S) #818677.3
 rmse.e <- rmse(observed$E, predicted$E) #3651.17
@@ -462,3 +466,15 @@ rrmse.s <- rmse.s/sd(observed$S) #123.8984
 rrmse.e <- rmse.e/sd(observed$E) #1.480636
 rrmse.i <- rmse.i/sd(observed$I) #2.323698
 rrmse.r <- rmse.r/sd(observed$R) #2.466726
+
+rmseTable <- data.frame(SEIR=character(),
+                        mse=double(),
+                        rmse=double(),
+                        rrmse=double())
+
+rmseTable[1,] <- c('Susceptible', rmse.s)
+rmseTable[2,] <- c('Exposed', rmse.e)
+rmseTable[3,] <- c('Infectious', rmse.i)
+rmseTable[4,] <- c('Recovered', rmse.r)
+
+
