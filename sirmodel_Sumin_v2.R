@@ -455,17 +455,12 @@ dev.off()
 observed <- df2[, c('time', 'S', 'E', 'I', 'R')]
 predicted <- output_v2 %>% mutate(S = S_est*N, E = E_est*N, I = I_est*N, R=R_est*N)
 
-rmse.s <- rmse(observed$S, predicted$S) #818677.3
-rmse.e <- rmse(observed$E, predicted$E) #3651.17
-rmse.i <- rmse(observed$I, predicted$I) #7948.69
-rmse.r <- rmse(observed$R, predicted$R) #30716.83
+rmse.s <- rmse(observed$S, predicted$S) #10894.61
+rmse.e <- rmse(observed$E, predicted$E) #3984.78
+rmse.i <- rmse(observed$I, predicted$I) #8607.106
+rmse.r <- rmse(observed$R, predicted$R) #4490.766
 
 #relative RMSE
-
-rrmse.s <- rmse.s/sd(observed$S) #123.8984
-rrmse.e <- rmse.e/sd(observed$E) #1.480636
-rrmse.i <- rmse.i/sd(observed$I) #2.323698
-rrmse.r <- rmse.r/sd(observed$R) #2.466726
 
 rmseTable <- data.frame(SEIR=character(),
                         mse=double(),
@@ -477,4 +472,8 @@ rmseTable[2,] <- c('Exposed', rmse.e)
 rmseTable[3,] <- c('Infectious', rmse.i)
 rmseTable[4,] <- c('Recovered', rmse.r)
 
+rrmse.s <- rmse.s/sd(observed$S) #1.648788
+rrmse.e <- rmse.e/sd(observed$E) #1.615923
+rrmse.i <- rmse.i/sd(observed$I) #2.516177
+rrmse.r <- rmse.r/sd(observed$R) #0.3606326
 
